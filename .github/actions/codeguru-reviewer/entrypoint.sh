@@ -8,15 +8,15 @@ mag=$'\e[1;35m'
 cyn=$'\e[1;36m'
 end=$'\e[0m'
 
-name=$GITHUB_REPOSITORY
 src_root=$1
 build_root=$2
-path=$name_$GITHUB_SHA_$(date +%s)
+
+name=${GITHUB_REPOSITORY//\//-}
+path="${name}_${GITHUB_SHA}"
 
 export AWS_DEFAULT_OUTPUT="text"
-export AWS_DEFAULT_REGION="us-west-2"
 
-aws configure add-model --service-model file:///codeguru-reviewer-2019-09-19.normal.json --service-name codeguru
+aws configure add-model --service-model file://codeguru-reviewer-2019-09-19.normal.json --service-name codeguru
 cp codeguru-reviewer-2019-09-19.waiters-2.json ~/.aws/models/codeguru/2019-09-19/waiters-2.json
 
 cmd="aws --endpoint https://us-west-2.gamma.fe-service.guru.aws.a2z.com codeguru"
@@ -41,7 +41,7 @@ die_if_failed () {
     [ ! $? -eq 0 ] && die "Last operation failed."
 }
 
-printf "\n${grn}AWS CodeGuru Security Scanner Action${end}\n"
+printf "\n${grn}AWS CodeGuru Reviewer Security Scanner Action${end}\n"
 printf "\nassociation name: ${yel}$name${end}   region: ${yel}$AWS_DEFAULT_REGION${end}   src-root: ${yel}$src_root${end}   build-artifact: ${yel}$build_root${end}\n"
 
 [ ! -d $build_root ] && die "Build artifact directory not found."
@@ -84,12 +84,12 @@ printf "\n${cyn}Uploading source archive...${end}\n";
 aws s3 cp source.zip s3://$bucketName/$path/
 die_if_failed
 
-printf "${cyn}\nUploading the build artifact...${end}\n";
+printf "\n${cyn}Uploading the build artifact...${end}\n";
 aws s3 cp artifacts.zip s3://$bucketName/$path/
 die_if_failed
 
 printf "\n${cyn}Submitting the review request...${end}\n";
-CodeReviewArn=$($cmd create-code-review --name $path --repository-association-arn "$associationArn" --type "{\"RepositoryAnalysis\": {\"S3BucketRepository\": {\"Name\": \"$path\",\"Details\": {\"BucketName\": \"$bucketName\",\"CodeArtifacts\": {\"BuildArtifactsObjectKey\": \"$path/artifacts.zip\", \"SourceCodeArtifactsObjectKey\": \"$path/source.zip\"}}}},\"AnalysisTypes\": [\"Security\"]}" --query CodeReview.CodeReviewArn)
+CodeReviewArn=$($cmd create-code-review --name "${path}_$(date +%s)" --repository-association-arn "$associationArn" --type "{\"RepositoryAnalysis\": {\"S3BucketRepository\": {\"Name\": \"$name\",\"Details\": {\"BucketName\": \"$bucketName\",\"CodeArtifacts\": {\"BuildArtifactsObjectKey\": \"$path/artifacts.zip\", \"SourceCodeArtifactsObjectKey\": \"$path/source.zip\"}}}},\"AnalysisTypes\": [\"Security\"]}" --query CodeReview.CodeReviewArn)
 die_if_failed
 
 printf "\ncode-review-arn: ${yel}$CodeReviewArn${end}\n";
