@@ -1,0 +1,55 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Java CI with Maven and dg
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.2.0
+      with:
+        name: my-app-1.0-SNAPSHOT.jar
+        path: target
+        if-no-files-found: warn
+        retention-days: 2
+
+    - name: AWS CodeGuru Reviewer
+      uses: ./.github/actions/codeguru-reviewer
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-west-2 # AWS Region
+      with:
+        src-root: src/main/java # Java source code root
+        build-root: target # build artifact(s) directory
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.2.0
+      with:
+        name: codeguru-results.sarif.json
+        path: .
+        if-no-files-found: warn
+        retention-days: 2
+
+    # Uploads results.sarif to GitHub repository using the upload-sarif action
+    # - uses: github/codeql-action/upload-sarif@v1
+    #   with:
+    #     sarif_file: codeguru-results.sarif.json
