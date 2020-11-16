@@ -8,12 +8,6 @@ mag=$'\e[1;35m'
 cyn=$'\e[1;36m'
 end=$'\e[0m'
 
-src_root=$1
-build_root=$2
-
-name=${GITHUB_REPOSITORY//\//-}
-path="${name}_${GITHUB_SHA}"
-
 export AWS_DEFAULT_OUTPUT="text"
 
 aws configure add-model --service-model file://codeguru-reviewer-2019-09-19.normal.json --service-name codeguru
@@ -41,11 +35,20 @@ die_if_failed () {
     [ ! $? -eq 0 ] && die "Last operation failed."
 }
 
+[ ! $src_root ] && src_root=$1
+[ ! $build_root ] && build_root=$2
+
+[[ $GITHUB_REPOSITORY ]] && name=${GITHUB_REPOSITORY//\//-} || name=$CI_PROJECT_PATH_SLUG
+[[ $GITHUB_SHA ]] && SHA=$GITHUB_SHA || SHA=$CI_COMMIT_SHA
+path="${name}_${SHA}"
+
 printf "\n${grn}AWS CodeGuru Reviewer Security Scanner Action${end}\n"
 printf "\nassociation name: ${yel}$name${end}   region: ${yel}$AWS_DEFAULT_REGION${end}   src-root: ${yel}$src_root${end}   build-artifact: ${yel}$build_root${end}\n"
 
 [ ! -d $build_root ] && die "Build artifact directory not found."
 [ ! -d $src_root ] && die "Source root not found or is not a directory."
+[ ! $SHA ] && die "Commit hash not set."
+[ ! $name ] && die "Association name not set."
 
 printf "\n${cyn}Querying for the repository association '$name'...${end}\n";
 
