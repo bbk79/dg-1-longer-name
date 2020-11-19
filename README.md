@@ -1,5 +1,5 @@
 # dg
 
-playing with GH Actions and GitLab CI/CD
+playing with GH Actions
 
 This should trigger a build
