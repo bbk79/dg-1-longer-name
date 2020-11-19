@@ -53,15 +53,6 @@ jobs:
         src-root: src/main/java # Java source code root
         build-root: target # build artifact(s) directory
 
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v2.2.0
+    - uses: github/codeql-action/upload-sarif@v1
       with:
-        name: codeguru_results.json
-        path: codeguru-results.sarif.json
-        if-no-files-found: warn
-        retention-days: 2
-
-    # Uploads results.sarif to GitHub repository using the upload-sarif action
-    # - uses: github/codeql-action/upload-sarif@v1
-    #   with:
-    #     sarif_file: codeguru-results.sarif.json
+        sarif_file: codeguru-results.sarif.json
