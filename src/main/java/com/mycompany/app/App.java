@@ -1,6 +1,7 @@
 package com.mycompany.app;
 
-import java.util.Random;
+import javax.crypto.Cipher;
+import java.lang.Exception;
 
 /**
  * Hello world!
@@ -13,8 +14,13 @@ public class App
         System.out.println( "Hello World!" );
     }
 
-    public String generateNotSoSecretToken() {
-        Random r = new Random();
-        return Long.toHexString(r.nextLong());
+    private void foo() throws Exception {
+        bar("DES"); // this should create a warning
+    }
+
+    private void bar(String s) throws Exception
+    {
+        final Cipher c = Cipher.getInstance(s);
+        c.doFinal();
     }
 }
