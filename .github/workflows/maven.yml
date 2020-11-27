@@ -35,10 +35,10 @@ jobs:
     - name: Checkout the action from private repository
       uses: actions/checkout@v2
       with:
-        repository: bbk79/codeguru-reviewer-security-scanner
-        ref: refs/heads/master
-        token: ${{ secrets.TOKEN }}
-        path: ./.github/actions/codeguru-reviewer-security-scanner
+        repository: aws-actions/codeguru-reviewer
+        ref: refs/heads/main
+        ssh-key: ${{ secrets.SSH_KEY }}
+        path: ./.github/actions/codeguru-reviewer
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -48,7 +48,7 @@ jobs:
         aws-region: us-west-2
 
     - name: AWS CodeGuru Reviewer Security Scanner
-      uses: ./.github/actions/codeguru-reviewer-security-scanner
+      uses: ./.github/actions/codeguru-reviewer
       with:
         src-root: src/main/java # Java source code root
         build-root: target # build artifact(s) directory
