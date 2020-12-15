@@ -1,3 +1,3 @@
 # dg
 
-playing with GH Actions.
+playing with GH Actions
